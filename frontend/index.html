@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="İşyeri personel takip ve devam yönetim sistemi. Güvenli giriş yapın.">
+  <title>Giriş Yap — Personel Takip Sistemi</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/login.css">
+  <script>
+    (function() {
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <main class="login-page" role="main">
+    <!-- Tema Değiştirici Buton (Açık/Koyu) -->
+    <div class="login-header-actions">
+      <button class="theme-toggle-btn" id="themeToggleBtn" type="button" aria-label="Tema değiştir" title="Tema Değiştir">
+        <span class="theme-toggle-icon">🌙</span>
+        <span class="theme-toggle-label">Koyu Tema</span>
+      </button>
+    </div>
+
+    <div class="login-bg-grid"></div>
+
+    <div class="login-container">
+      <div class="login-box">
+
+        <!-- Logo & Başlık -->
+        <div class="login-logo">
+          <div class="login-logo-icon">🏢</div>
+          <h1>Personel Takip</h1>
+          <p>Yönetim Sistemine Hoş Geldiniz</p>
+        </div>
+
+        <!-- Login Formu -->
+        <form class="login-form" id="loginForm" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="username">Kullanıcı Adı</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="form-control"
+                placeholder="kullanıcı adınızı girin"
+                autocomplete="username"
+                required
+              >
+              <span class="input-icon">👤</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Şifre</label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="şifrenizi girin"
+                autocomplete="current-password"
+                required
+              >
+              <span class="input-icon">🔒</span>
+              <button type="button" class="input-toggle-password" id="togglePassword" aria-label="Şifreyi göster/gizle">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <!-- Hata Mesajı -->
+          <div class="login-error hidden" id="loginError" role="alert">
+            <span>⚠️</span>
+            <span id="loginErrorText">Kullanıcı adı veya şifre hatalı.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
+            <span id="loginBtnText">Giriş Yap</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script>
+    // Zaten giriş yapıldıysa dashboard'a yönlendir
+    if (getUser() && localStorage.getItem('token')) {
+      window.location.href = '/dashboard.html';
+    }
+
+    // Şifre göster/gizle
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const pwd = document.getElementById('password');
+      const isText = pwd.type === 'text';
+      pwd.type = isText ? 'password' : 'text';
+      this.textContent = isText ? '👁️' : '🙈';
+    });
+
+    // Login formu gönder
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const errorDiv = document.getElementById('loginError');
+      const errorText = document.getElementById('loginErrorText');
+
+      if (!username || !password) {
+        errorText.textContent = 'Lütfen kullanıcı adı ve şifre girin.';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      // Loading durumu
+      btn.disabled = true;
+      btn.innerHTML = `<div class="spinner"></div> Giriş yapılıyor...`;
+      errorDiv.classList.add('hidden');
+
+      try {
+        const data = await API.login({ username, password });
+        saveSession(data.token, data.user);
+        showToast(`Hoş geldiniz, ${data.user.name}! 🎉`, 'success');
+
+        // Kısa bir gecikme ile yönlendir (toast görünsün)
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 800);
+
+      } catch (err) {
+        errorText.textContent = err.message || 'Giriş başarısız.';
+        errorDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = `<span id="loginBtnText">Giriş Yap</span>`;
+
+        // Input'ları sarsma animasyonu
+        document.querySelectorAll('.form-control').forEach(el => {
+          el.style.borderColor = 'var(--danger)';
+          setTimeout(() => el.style.borderColor = '', 1500);
+        });
+      }
+    });
+
+    // Enter ile input geçişi
+    document.getElementById('username').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('password').focus();
+    });
+  </script>
+</body>
+</html>

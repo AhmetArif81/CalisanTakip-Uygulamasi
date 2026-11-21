@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personel Takip Sistemi — Yönetim Paneli">
+  <title>Panel — Personel Takip Sistemi</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script>
+    (function() {
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <!-- Sidebar Overlay (Mobil) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="dashboard-layout">
+
+    <!-- ─── Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Ana menü">
+
+      <!-- Logo -->
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">🏢</div>
+        <div>
+          <div class="sidebar-logo-text">Personel Takip</div>
+          <div class="sidebar-logo-sub">Yönetim Sistemi</div>
+        </div>
+      </div>
+
+      <!-- Kullanıcı Bilgisi -->
+      <div class="sidebar-user">
+        <div id="sidebarAvatar"></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Yükleniyor...</div>
+          <div class="sidebar-user-role" id="sidebarUserRole"></div>
+        </div>
+      </div>
+
+      <!-- Navigasyon -->
+      <nav class="sidebar-nav" id="sidebarNav">
+        <!-- JS tarafından doldurulur -->
+      </nav>
+
+      <!-- Çıkış -->
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn" type="button">
+          <span>🚪</span>
+          <span>Çıkış Yap</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ─── Main Content ──────────────────────────────────────────────── -->
+    <div class="main-content">
+
+      <!-- Navbar -->
+      <header class="navbar">
+        <div class="navbar-left">
+          <button class="menu-toggle" id="menuToggle" aria-label="Menüyü aç/kapat">☰</button>
+          <div>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="page-subtitle" id="pageSubtitle"></div>
+          </div>
+        </div>
+        <div class="navbar-right">
+          <!-- Tema Değiştirici Buton (Açık/Koyu) -->
+          <button class="theme-toggle-btn" id="themeToggleBtn" type="button" aria-label="Tema değiştir" title="Tema Değiştir">
+            <span class="theme-toggle-icon">🌙</span>
+            <span class="theme-toggle-label">Koyu Tema</span>
+          </button>
+
+          <div class="datetime-display">
+            <div class="datetime-time" id="navbarTime">00:00</div>
+            <div class="datetime-date" id="navbarDate"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sayfa İçeriği -->
+      <main class="page-content" id="pageContent" role="main">
+        <div style="text-align:center; padding: 80px 20px; color: var(--text-muted)">
+          <div style="font-size:2rem; margin-bottom:12px">⏳</div>
+          <p>Yükleniyor...</p>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ─── Modaller ──────────────────────────────────────────────────── -->
+
+  <!-- Personel Ekle/Düzenle Modal -->
+  <div class="modal-overlay hidden" id="userModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="userModalTitle">Personel Ekle</h3>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('userModal')" aria-label="Kapat">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="userForm">
+          <input type="hidden" id="editUserId">
+          <div class="form-group">
+            <label class="form-label" for="formName">Ad Soyad *</label>
+            <input type="text" id="formName" class="form-control" placeholder="Ad Soyad" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formUsername">Kullanıcı Adı *</label>
+            <input type="text" id="formUsername" class="form-control" placeholder="kullanici_adi" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formPassword">Şifre <span id="passwordLabel">(zorunlu)</span></label>
+            <input type="password" id="formPassword" class="form-control" placeholder="şifre">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formRole">Rol *</label>
+            <select id="formRole" class="form-control" required>
+              <option value="employee">Personel</option>
+              <option value="manager">Müdür</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formDept">Departman</label>
+            <input type="text" id="formDept" class="form-control" placeholder="Muhasebe, Satış, vb.">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formPhone">Telefon</label>
+            <input type="tel" id="formPhone" class="form-control" placeholder="0532 000 0000">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formEmail">E-posta</label>
+            <input type="email" id="formEmail" class="form-control" placeholder="email@sirket.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="formHireDate">İşe Başlama Tarihi</label>
+            <input type="date" id="formHireDate" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('userModal')">İptal</button>
+        <button class="btn btn-primary" id="userFormSaveBtn" onclick="saveUser()">💾 Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- İzin Talebi Modal -->
+  <div class="modal-overlay hidden" id="leaveModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">İzin Talebi Oluştur</h3>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('leaveModal')" aria-label="Kapat">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="leaveForm">
+          <div class="form-group">
+            <label class="form-label" for="leaveStart">Başlangıç Tarihi *</label>
+            <input type="date" id="leaveStart" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="leaveEnd">Bitiş Tarihi *</label>
+            <input type="date" id="leaveEnd" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="leaveType">İzin Türü</label>
+            <select id="leaveType" class="form-control">
+              <option value="annual">🏖️ Yıllık İzin</option>
+              <option value="sick">🏥 Hastalık İzni</option>
+              <option value="personal">👤 Kişisel İzin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="leaveReason">Açıklama</label>
+            <textarea id="leaveReason" class="form-control" placeholder="İzin nedeninizi kısaca belirtin..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('leaveModal')">İptal</button>
+        <button class="btn btn-primary" id="leaveFormSaveBtn" onclick="submitLeave()">📤 Talep Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Duyuru Modal -->
+  <div class="modal-overlay hidden" id="announcementModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Duyuru Oluştur</h3>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('announcementModal')" aria-label="Kapat">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="announcementForm">
+          <div class="form-group">
+            <label class="form-label" for="annTitle">Başlık *</label>
+            <input type="text" id="annTitle" class="form-control" placeholder="Duyuru başlığı" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="annContent">İçerik *</label>
+            <textarea id="annContent" class="form-control" rows="4" placeholder="Duyuru içeriği..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="annPriority">Öncelik</label>
+            <select id="annPriority" class="form-control">
+              <option value="normal">Normal</option>
+              <option value="high">Yüksek</option>
+              <option value="low">Düşük</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('announcementModal')">İptal</button>
+        <button class="btn btn-primary" id="annFormSaveBtn" onclick="saveAnnouncement()">📢 Yayınla</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <!-- Sayfa modülleri app.js'den ÖNCE yüklenmeli; app.js açılışta render fonksiyonlarını çağırır -->
+  <script src="js/admin.js"></script>
+  <script src="js/manager.js"></script>
+  <script src="js/employee.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
